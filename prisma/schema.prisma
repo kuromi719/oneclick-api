@@ -1,0 +1,115 @@
+// npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id          String     @id @default(cuid())
+  name        String
+  description String?    @db.Text
+  slug        String     @unique
+  icon        String?
+  color       String     @default("#f43f5e")
+  endpoints   Endpoint[]
+  apiKeys     ApiKey[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("projects")
+}
+
+model Endpoint {
+  id              String    @id @default(cuid())
+  name            String
+  path            String
+  method          String
+  description     String?   @db.Text
+  projectId       String
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  flowData        Json
+  responseType    String    @default("json")
+  statusCode      Int       @default(200)
+  rateLimit       Int       @default(100)
+  rateLimitWindow Int       @default(60)
+  isActive        Boolean   @default(true)
+  headers         Json?
+  queryParams     Json?
+  bodySchema      Json?
+  requests        Request[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([projectId, path, method])
+  @@index([projectId])
+  @@map("endpoints")
+}
+
+model Node {
+  id          String   @id @default(cuid())
+  endpointId  String
+  type        String
+  position    Json
+  data        Json
+  connections Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([endpointId])
+  @@map("nodes")
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  key         String    @unique
+  name        String
+  projectId   String?
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  permissions Json?
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  @@index([projectId])
+  @@map("api_keys")
+}
+
+model Request {
+  id          String   @id @default(cuid())
+  endpointId  String
+  endpoint    Endpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  method      String
+  path        String
+  statusCode  Int
+  duration    Int
+  ipAddress   String?
+  userAgent   String?  @db.Text
+  requestBody Json?
+  response    Json?
+  apiKeyId    String?
+  createdAt   DateTime @default(now())
+
+  @@index([endpointId])
+  @@index([createdAt])
+  @@map("requests")
+}
+
+model RateLimit {
+  id          String   @id @default(cuid())
+  identifier  String
+  endpointId  String
+  count       Int      @default(0)
+  windowStart DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([identifier, endpointId, windowStart])
+  @@index([windowStart])
+  @@map("rate_limits")
+}
