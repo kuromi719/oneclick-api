@@ -17,6 +17,7 @@ import {
     ChevronRight,
     Workflow,
     ScrollText,
+    Table,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -51,6 +52,7 @@ export default function DashboardSidebar() {
     const navItems = [
         { href: "/dashboard/home", label: "Dashboard", icon: Home },
         { href: "/dashboard/projects", label: "Projects", icon: Database },
+        { href: "/dashboard/database", label: "Database Builder", icon: Table },
         { href: "/dashboard/builder", label: "Visual Builder", icon: Workflow },
         { href: "/dashboard/endpoints", label: "Endpoints", icon: Code },
         { href: "/dashboard/api-keys", label: "API Keys", icon: Key },

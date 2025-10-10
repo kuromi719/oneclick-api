@@ -1,5 +1,3 @@
-// npx prisma migrate dev --name init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,16 +8,17 @@ datasource db {
 }
 
 model Project {
-  id          String     @id @default(cuid())
-  name        String
-  description String?    @db.Text
-  slug        String     @unique
-  icon        String?
-  color       String     @default("#f43f5e")
-  endpoints   Endpoint[]
-  apiKeys     ApiKey[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id           String        @id @default(cuid())
+  name         String
+  description  String?       @db.Text
+  slug         String        @unique
+  icon         String?
+  color        String        @default("#f43f5e")
+  endpoints    Endpoint[]
+  apiKeys      ApiKey[]
+  customTables CustomTable[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   @@map("projects")
 }
@@ -48,6 +47,34 @@ model Endpoint {
   @@unique([projectId, path, method])
   @@index([projectId])
   @@map("endpoints")
+}
+
+model CustomTable {
+  id          String          @id @default(cuid())
+  name        String
+  displayName String
+  projectId   String
+  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  schema      Json
+  data        CustomTableData[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@unique([projectId, name])
+  @@index([projectId])
+  @@map("custom_tables")
+}
+
+model CustomTableData {
+  id        String      @id @default(cuid())
+  tableId   String
+  table     CustomTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  data      Json
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([tableId])
+  @@map("custom_table_data")
 }
 
 model Node {

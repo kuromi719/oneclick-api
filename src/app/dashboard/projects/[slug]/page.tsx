@@ -494,12 +494,6 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                                                 {endpoint.requests}
                                                             </span>
                                                         </div>
-                                                        <div>
-                                                            <span className="text-gray-600 dark:text-gray-400">Avg Duration: </span>
-                                                            <span className="font-semibold text-gray-900 dark:text-white">
-                                                                {endpoint.avgDuration}ms
-                                                            </span>
-                                                        </div>
                                                     </div>
                                                 </div>
 

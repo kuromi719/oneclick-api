@@ -17,7 +17,15 @@ export async function POST(
 
         const { slug } = await params;
         const body = await request.json();
-        const { name, path, method, description } = body;
+        let { name, path, method, description, flowData } = body;
+
+        let normalizedPath = path;
+        if (normalizedPath && !normalizedPath.startsWith('/')) {
+            normalizedPath = '/' + normalizedPath;
+        }
+        if (normalizedPath && normalizedPath.startsWith('/api/')) {
+            normalizedPath = normalizedPath.replace('/api/', '/');
+        }
 
         const project = await prisma.project.findUnique({
             where: { slug }
@@ -33,7 +41,7 @@ export async function POST(
         const existingEndpoint = await prisma.endpoint.findFirst({
             where: {
                 projectId: project.id,
-                path,
+                path: normalizedPath,
                 method
             }
         });
@@ -48,15 +56,26 @@ export async function POST(
         const endpoint = await prisma.endpoint.create({
             data: {
                 name,
-                path,
+                path: normalizedPath,
                 method,
                 description,
                 projectId: project.id,
-                flowData: {
+                flowData: flowData || {
                     nodes: [],
                     edges: []
-                }
+                },
+                responseType: body.responseType || "json",
+                statusCode: body.statusCode || 200,
+                rateLimit: body.rateLimit || 100,
+                rateLimitWindow: body.rateLimitWindow || 60,
+                isActive: body.isActive !== undefined ? body.isActive : true,
             }
+        });
+
+        console.log('✅ Endpoint created:', {
+            id: endpoint.id,
+            path: endpoint.path,
+            method: endpoint.method
         });
 
         return NextResponse.json({ endpoint }, { status: 201 });
